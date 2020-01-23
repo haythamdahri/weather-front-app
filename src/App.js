@@ -1,8 +1,10 @@
 import React from 'react';
-import {BrowserRouter as Router, Link, Route} from 'react-router-dom';
-
+import {BrowserRouter as Router, Link, Route, Switch} from 'react-router-dom';
 import Home from "./components/Home";
 import About from "./components/About";
+import NotFoundPage from "./components/NotFoundPage";
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faAddressCard, faHome} from "@fortawesome/free-solid-svg-icons";
 
 /**
  * @return {boolean}
@@ -10,12 +12,15 @@ import About from "./components/About";
 function App() {
     return (
         <Router>
-            <NavBar />
+            <NavBar/>
             <div className="container-fluid">
                 {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
-                <Route path="/" component={Home} exact/>
-                <Route path="/about" component={About}/>
+                <Switch>
+                    <Route path="/" component={Home} exact={true}/>
+                    <Route path="/about" component={About}/>
+                    <Route path="**" exact={true} component={NotFoundPage}/>
+                </Switch>
             </div>
         </Router>
     );
@@ -23,8 +28,8 @@ function App() {
 
 const NavBar = (props) => {
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-            <Link className="navbar-brand" to="/">Weather Checker</Link>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm p-3 mb-5 rounded">
+            <Link className="navbar-brand" to="/"><img src={process.env.PUBLIC_URL + '/logo.png'} alt="Logo image" height="30" width="30" /> Weather Checker</Link>
             <button className="navbar-toggler" type="button" data-toggle="collapse"
                     data-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,10 +38,10 @@ const NavBar = (props) => {
             <div className="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul className="navbar-nav mr-auto">
                     <li className="nav-item active">
-                        <Link className="nav-link" to="/">Home <span className="sr-only">(current)</span></Link>
+                        <Link className="nav-link" to="/"><FontAwesomeIcon icon={faHome} /> Home <span className="sr-only">(current)</span></Link>
                     </li>
                     <li className="nav-item">
-                        <Link className="nav-link" to="/about">About <span
+                        <Link className="nav-link" to="/about"><FontAwesomeIcon icon={faAddressCard} /> About <span
                             className="sr-only">(current)</span></Link>
                     </li>
                 </ul>

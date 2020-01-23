@@ -44,6 +44,7 @@
     ]
   },
   "devDependencies": {
+    "css-loader": "^3.4.2",
     "dotenv": "^8.2.0"
   }
 }

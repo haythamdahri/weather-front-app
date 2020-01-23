@@ -3,6 +3,8 @@ import axios from "axios";
 import {Link} from "react-router-dom";
 import Moment from 'react-moment';
 import Search from "./Search";
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {faChevronCircleDown, faExclamationCircle} from "@fortawesome/free-solid-svg-icons";
 
 export default class Home extends Component {
 
@@ -12,7 +14,8 @@ export default class Home extends Component {
         this.WEATHER_API_URL = `http://api.openweathermap.org/data/2.5/weather?appid=${this.API_KEY}`;
         this.state = {
             cityDetails: {},
-            loading: true
+            loading: true,
+            searchLoading: false
         }
         // Set bind
         this.loadCityWeather = this.loadCityWeather.bind(this);
@@ -24,32 +27,30 @@ export default class Home extends Component {
     }
 
     loadCityWeather(cityName = 'Casablanca') {
-        this.setState({loading: true});
-        setTimeout(() => {
-            axios.get(`${this.WEATHER_API_URL}&units=metric&q=${cityName}`)
-                .then((response) => {
-                    // Set Data and loading to false
-                    this.setState({cityDetails: response.data, loading: false});
-                })
-                .catch((err) => {
-                    console.log("Error occurred");
-                    this.setState({cityDetails: null, loading: false});
-                });
-        }, 2500);
+        this.setState({searchLoading: true});
+        axios.get(`${this.WEATHER_API_URL}&units=metric&q=${cityName}`)
+            .then((response) => {
+                // Set Data and loading to false
+                this.setState({cityDetails: response.data, loading: false});
+            })
+            .catch((err) => {
+                console.log("Error occurred");
+                this.setState({cityDetails: null, loading: false});
+            }).then(() => {
+            this.setState({searchLoading: false});
+        });
+
     }
 
     render() {
-        if (this.state.cityDetails != null && !this.state.loading) {
-            return (
-                <div className="row">
-
-                    <div className="col-12">
-                        <Search loadCityWeather={this.loadCityWeather} loading={this.state.loading}/>
-                    </div>
+        let renderedHTML = "";
+        if (this.state.cityDetails !== null && !this.state.loading) {
+            renderedHTML = (
+                <>
                     <div className="col-sm-12 col-md-6 col-lg-6 col-xl-6 mx-auto">
                         <CityDescription cityDetails={this.state.cityDetails}/>
                     </div>
-                    <div className="col-sm-12">
+                    <div className="col-sm-12 col-md-8 col-lg-8 col-xl-8 mx-auto">
                         <div className="weather-card one">
                             <div className="top">
                                 <div className="wrapper">
@@ -108,47 +109,68 @@ export default class Home extends Component {
                             </div>
                         </div>
                     </div>
-                </div>
+                </>
             );
         } else if (this.state.cityDetails != null && this.state.loading) {
-            return (
-                <div className="row">
-                    <div className="col-12">
-                        Loading ...
+            renderedHTML = (
+                <div className="col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-5">
+                    <div className="text-center">
+                        <div className="spinner-border" role="status">
+                            <span className="sr-only">Loading...</span>
+                        </div>
                     </div>
                 </div>
             );
         } else {
-            return (
-                <div className="alert alert-warning">
-                    An error occurred
+            renderedHTML = (
+                <div className="col-sm-12 col-md-8 col-lg-8 col-xl-8 mx-auto mt-4">
+                    <div className="alert alert-info text-center font-weight-bold">
+                        <FontAwesomeIcon icon={faExclamationCircle}/> No city has been found
+                    </div>
                 </div>
             );
         }
+        return (
+            <div className="row">
+                <div className="col-sm-12 col-md-8 col-lg-8 col-xl-8 mx-auto">
+                    <Search loadCityWeather={this.loadCityWeather} searchLoading={this.state.searchLoading}
+                            loading={this.state.loading}/>
+                </div>
+                {renderedHTML}
+            </div>
+        )
     }
 
 }
 
 const CityDescription = (props) => {
     return (
-        <div>
-            <h1 className="display-2 font-weight-bold text-primary text-center">{props.cityDetails.name + ' Details'}</h1>
-            <ul className="list-group list-group-flush">
-                <li className="list-group-item p"><strong
-                    className="pr-5">Name: </strong>{props.cityDetails.name}</li>
-                <li className="list-group-item">
-                    <strong className="pr-5">Country: </strong>{props.cityDetails.sys.country}</li>
-                <li className="list-group-item"><strong
-                    className="pr-5">Country: </strong>{props.cityDetails.dt}</li>
-                <li className="list-group-item"><strong
-                    className="pr-5">Latitude: </strong> {props.cityDetails.coord.lat}</li>
-                <li className="list-group-item"><strong
-                    className="pr-5">Longitude: </strong> {props.cityDetails.coord.lon}</li>
-                <li className="list-group-item"><strong
-                    className="pr-5">Sunrise: </strong> <Moment unix>{props.cityDetails.sys.sunrise}</Moment></li>
-                <li className="list-group-item"><strong
-                    className="pr-5">Sunset: </strong> <Moment unix>{props.cityDetails.sys.sunset}</Moment></li>
+        <div class={"col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-4"}>
+            <a className="btn btn-link btn-block" data-toggle="collapse" href="#cityDetails" role="button"
+               aria-expanded="false" aria-controls="cityDetails"><FontAwesomeIcon icon={faChevronCircleDown} /> Display details</a>
+            <div id="cityDetails" class="collapse multi-collapse">
+                <h1 className="display-2 font-weight-bold text-primary text-center">{props.cityDetails.name + ' Details'}</h1>
+                <ul className="list-group list-group-flush">
+                    <li className="list-group-item p"><strong
+                        className="pr-5">Name: </strong>{props.cityDetails.name}</li>
+                    <li className="list-group-item">
+                        <strong className="pr-5">Country: </strong>{props.cityDetails.sys.country}</li>
+                    <li className="list-group-item"><strong
+                        className="pr-5">Country: </strong><Moment unix
+                                                                   format={'dddd DD MMMM YYYY'}>{props.cityDetails.dt}</Moment>
+                    </li>
+                    <li className="list-group-item"><strong
+                        className="pr-5">Latitude: </strong> {props.cityDetails.coord.lat}</li>
+                    <li className="list-group-item"><strong
+                        className="pr-5">Longitude: </strong> {props.cityDetails.coord.lon}</li>
+                    <li className="list-group-item"><strong
+                        className="pr-5">Sunrise: </strong> <Moment unix local>{props.cityDetails.sys.sunrise}</Moment>
+                    </li>
+                    <li className="list-group-item"><strong
+                        className="pr-5">Sunset: </strong> <Moment unix local>{props.cityDetails.sys.sunset}</Moment>
+                    </li>
             </ul>
+        </div>
         </div>
     );
 }
